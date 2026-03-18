@@ -1,0 +1,83 @@
+:root {
+  --mida: 100px;
+  --columnes: 3;
+  --files: 3;
+}
+
+* { 
+  box-sizing: border-box; 
+}
+
+body {
+  align-items: center;
+  background: #f6f7fb;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  font-family: "Open Sans", sans-serif;
+  height: 100vh;
+  justify-content: center;
+  padding: 10px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+#tauler {
+  background: #ddd; /* Fons gris per a la casella buida */
+  border: 2px solid #111827;
+  border-radius: 8px;
+  height: calc(var(--mida) * var(--files));
+  overflow: hidden;
+  position: relative;
+  width: calc(var(--mida) * var(--columnes));
+}
+
+.peca {
+  align-items: center;
+  background-color: #00b3ff;
+  border: 1px solid white;
+  color: white;
+  display: flex;
+  font-size: 32px;
+  font-weight: bold;
+  height: var(--mida);
+  justify-content: center;
+  position: absolute;
+  transition: transform 300ms ease; /* Animació suau de translació */
+  user-select: none;
+  width: var(--mida);
+}
+
+.peca:hover {
+  cursor: pointer;
+  filter: brightness(1.1);
+}
+
+.controls {
+  align-items: center;
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+button {
+  background: #111827;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.ocult {
+  display: none;
+}
+
+#missatgeVictoria {
+  color: #27ae60;
+  margin-top: 20px;
+}
