@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no">
@@ -12,13 +12,15 @@
   <body onload="init()">
     <h1>Sliding Puzzle</h1>
 
-    <div id="tauler"></div>
+    <div id="tauler">
+      <!-- Continguts generats al JavaScript -->
+    </div>
 
     <div class="controls">
       <button id="btnReinici">Reset</button>
-      <span id="info">Moviments: <span id="comptador">0</span></span>
+      <span id="info">Moviments: 0</span>
     </div>
 
-    <h2 id="missatgeVictoria" class="ocult"></h2>
+    <div id="missatge"></div>
   </body>
 </html>
