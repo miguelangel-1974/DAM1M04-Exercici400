@@ -66,7 +66,7 @@ function estaResolt() {
 //  Així garantim que el puzle sempre té solució
 function barrejar() {
     var i = 0;
-    while (i < 2) {
+    while (i < 200) {
         // Trobem on és el buit
         var buit = trobarBuit();
 
