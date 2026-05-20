@@ -1,156 +1,256 @@
-"use strict";
+//  VARIABLES GLOBALS
 
-const midaCasella = 150;
-const numFiles = 3;
-const numColumnes = 3;
+// Mida de cada casella en píxels
+var MIDA = 100;
 
-// Matriu del joc: 0 és el buit, 1..8 són les peces
-let tauler = [];
-let moviments = 0;
-let jocAcabat = false;
-
-// Estat resolt de referència
-const resolt = [
-  [1, 2, 3],
-  [4, 5, 6],
-  [7, 8, 0]
-];
-
-function init() {
-  // Sincronitzar variables CSS amb les constants JS
-  const root = document.documentElement;
-  root.style.setProperty("--mida", midaCasella + "px");
-  root.style.setProperty("--files", numFiles);
-  root.style.setProperty("--columnes", numColumnes);
-
-  const refTauler = document.getElementById("tauler");
-
-  // Crear els divs de les peces (1..8), cadascun amb la seva imatge PNG
-  for (let i = 1; i <= 8; i++) {
-    const refPeca = document.createElement("div");
-    refPeca.classList.add("peca");
-    refPeca.setAttribute("id", `peca-${i}`);
-
-    // Imatge corresponent a la peça
-    const img = document.createElement("img");
-    img.src = `img/${i}.png`;
-    img.alt = `Peça ${i}`;
-    refPeca.appendChild(img);
-
-    // Clic: intentar moure la peça amb número "i"
-    refPeca.addEventListener("click", () => intentarMoure(i));
-
-    refTauler.appendChild(refPeca);
-  }
-
-  // Botó de reset
-  document.getElementById("btnReinici").addEventListener("click", reinicia);
-
-  // Iniciar el joc barrejat
-  reinicia();
-}
-
-// Retorna { fila, columna } del valor buscat dins la matriu
-function trobarPosicio(valor) {
-  for (let f = 0; f < numFiles; f++) {
-    for (let c = 0; c < numColumnes; c++) {
-      if (tauler[f][c] === valor) {
-        return { fila: f, columna: c };
-      }
-    }
-  }
-}
-
-// Intenta moure la peça amb el número "valor"
-function intentarMoure(valor) {
-  if (jocAcabat) return;
-
-  const posPeca = trobarPosicio(valor);
-  const posBuit = trobarPosicio(0);
-
-  // Distància Manhattan: ha de ser exactament 1 per ser adjacent
-  const df = Math.abs(posPeca.fila - posBuit.fila);
-  const dc = Math.abs(posPeca.columna - posBuit.columna);
-
-  if (df + dc === 1) {
-    // Intercanviar la peça amb el buit a la matriu
-    tauler[posBuit.fila][posBuit.columna] = valor;
-    tauler[posPeca.fila][posPeca.columna] = 0;
-
-    moviments++;
-    actualitzaDOM();
-    comprovarVictoria();
-  }
-}
-
-// Actualitza el DOM: mou visualment cada peça a la seva posició actual
-function actualitzaDOM() {
-  document.getElementById("comptador").textContent = moviments;
-
-  for (let f = 0; f < numFiles; f++) {
-    for (let c = 0; c < numColumnes; c++) {
-      const valor = tauler[f][c];
-
-      if (valor !== 0) {
-        const refPeca = document.getElementById(`peca-${valor}`);
-        const x = c * midaCasella;
-        const y = f * midaCasella;
-        // Animació suau via transform/translate (CSS transition ja ho gestiona)
-        refPeca.style.transform = `translate(${x}px, ${y}px)`;
-      }
-    }
-  }
-}
-
-// Comprova si el tauler actual coincideix amb l'estat resolt
-function comprovarVictoria() {
-  for (let f = 0; f < numFiles; f++) {
-    for (let c = 0; c < numColumnes; c++) {
-      if (tauler[f][c] !== resolt[f][c]) return;
-    }
-  }
-
-  // Puzzle resolt!
-  jocAcabat = true;
-  const msg = document.getElementById("missatgeVictoria");
-  msg.textContent = `Puzzle Resolt en ${moviments} moviment${moviments === 1 ? "" : "s"}!`;
-  msg.classList.remove("ocult");
-}
-
-// Reinicia el joc: parteix de l'estat resolt i fa 200 moviments vàlids aleatoris
-function reinicia() {
-  tauler = [
+// Estat resolt: les peces del 1 al 8 en ordre, i el 0 és el buit
+var ESTAT_RESOLT = [
     [1, 2, 3],
     [4, 5, 6],
     [7, 8, 0]
-  ];
+];
 
-  jocAcabat = false;
-  moviments = 0;
-  document.getElementById("missatgeVictoria").classList.add("ocult");
+// El tauler actual (array 2D). Comença igual que l'estat resolt
+// i després es barreja
+var tauler = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+];
 
-  // Barrejar fent moviments vàlids aleatoris (garanteix que el puzzle és resoluble)
-  let ultimMoviment = -1; // Evita desfer l'últim moviment immediatament
-  for (let i = 0; i < 200; i++) {
-    const posBuit = trobarPosicio(0);
-    const veins = [];
+// Comptador de moviments
+var moviments = 0;
 
-    if (posBuit.fila > 0)           veins.push(tauler[posBuit.fila - 1][posBuit.columna]);
-    if (posBuit.fila < numFiles - 1) veins.push(tauler[posBuit.fila + 1][posBuit.columna]);
-    if (posBuit.columna > 0)                veins.push(tauler[posBuit.fila][posBuit.columna - 1]);
-    if (posBuit.columna < numColumnes - 1)  veins.push(tauler[posBuit.fila][posBuit.columna + 1]);
-
-    // Filtrar l'últim moviment per evitar anar i tornar
-    const candidats = veins.filter(v => v !== ultimMoviment);
-    const escollit = candidats.length > 0
-      ? candidats[Math.floor(Math.random() * candidats.length)]
-      : veins[Math.floor(Math.random() * veins.length)];
-
-    const posEscollit = trobarPosicio(escollit);
-    tauler[posBuit.fila][posBuit.columna] = escollit;
-    tauler[posEscollit.fila][posEscollit.columna] = 0;
-    ultimMoviment = escollit;
-  }
-
-  actualitzaDOM();
+//  FUNCIÓ: trobarBuit
+//  Busca on és la casella buida (el valor 0) al tauler
+//  Retorna un objecte amb { fila, columna }
+function trobarBuit() {
+    var fila = 0;
+    // Recorrem totes les files
+    while (fila < 3) {
+        var columna = 0;
+        // Recorrem totes les columnes d'aquesta fila
+        while (columna < 3) {
+            // Si trobem el 0, aquest és el buit
+            if (tauler[fila][columna] === 0) {
+                return { fila: fila, columna: columna };
+            }
+            columna = columna + 1;
+        }
+        fila = fila + 1;
+    }
 }
+
+//  FUNCIÓ: estaResolt
+//  Comprova si el tauler actual és igual a l'estat resolt
+//  Retorna true o false
+function estaResolt() {
+    var fila = 0;
+    while (fila < 3) {
+        var columna = 0;
+        while (columna < 3) {
+            // Si alguna casella no coincideix, no està resolt
+            if (tauler[fila][columna] !== ESTAT_RESOLT[fila][columna]) {
+                return false;
+            }
+            columna = columna + 1;
+        }
+        fila = fila + 1;
+    }
+    // Si hem passat tots els checks, està resolt
+    return true;
+}
+
+//  FUNCIÓ: barrejar
+//  Fa 200 moviments aleatoris vàlids per barrejar el tauler
+//  Així garantim que el puzle sempre té solució
+function barrejar() {
+    var i = 0;
+    while (i < 2) {
+        // Trobem on és el buit
+        var buit = trobarBuit();
+
+        // Les 4 direccions possibles: amunt, avall, esquerra, dreta
+        var direccions = [
+            { df: -1, dc: 0 },
+            { df: 1,  dc: 0 },
+            { df: 0,  dc: -1 },
+            { df: 0,  dc: 1 }
+        ];
+
+        // Escollim una direcció aleatòria
+        var index = Math.floor(Math.random() * 4);
+        var dir = direccions[index];
+
+        // Calculem la posició de la peça que mouríem al buit
+        var filaPeca = buit.fila + dir.df;
+        var colPeca  = buit.columna + dir.dc;
+
+        // Comprovem que la peça estigui dins del tauler (0..2)
+        if (filaPeca >= 0 && filaPeca < 3 && colPeca >= 0 && colPeca < 3) {
+            // Intercanviem la peça amb el buit
+            var temp = tauler[filaPeca][colPeca];
+            tauler[filaPeca][colPeca] = 0;
+            tauler[buit.fila][buit.columna] = temp;
+        }
+
+        i = i + 1;
+    }
+}
+
+//  FUNCIÓ: actualitzarUI
+//  Mou cada div de peça a la seva posició correcta al tauler
+//  usant transform: translate(x, y) per tenir animació suau
+function actualitzarUI() {
+    var fila = 0;
+    while (fila < 3) {
+        var columna = 0;
+        while (columna < 3) {
+            // El valor de la matriu en aquesta posició
+            var valor = tauler[fila][columna];
+
+            // Busquem el div que representa aquesta peça
+            // Cada div té id="peca-N" on N és el número de peça (1..8)
+            // La peça buida té id="peca-0"
+            var div = document.getElementById("peca-" + valor);
+
+            // Calculem on ha d'anar visualment (en píxels)
+            var x = columna * MIDA;
+            var y = fila * MIDA;
+
+            // Movem el div amb transform (animació suau gràcies al CSS transition)
+            div.style.transform = "translate(" + x + "px, " + y + "px)";
+
+            columna = columna + 1;
+        }
+        fila = fila + 1;
+    }
+
+    // Actualitzem el comptador de moviments a la pàgina
+    document.getElementById("comptador").textContent = moviments;
+}
+
+//  FUNCIÓ: clicCasella
+//  S'executa quan l'usuari clica una peça
+//  fila i columna: posició clicada al tauler lògic
+function clicCasella(fila, columna) {
+    // Si el puzle ja està resolt, no fem res
+    if (estaResolt()) {
+        return;
+    }
+
+    // Trobem on és el buit
+    var buit = trobarBuit();
+
+    // Calculem la distància Manhattan entre la peça i el buit
+    var df = Math.abs(fila - buit.fila);
+    var dc = Math.abs(columna - buit.columna);
+
+    // Només és un moviment vàlid si la distància és exactament 1
+    if (df + dc === 1) {
+        // Intercanviem la peça amb el buit al tauler lògic
+        var temp = tauler[fila][columna];
+        tauler[fila][columna] = 0;
+        tauler[buit.fila][buit.columna] = temp;
+
+        // Sumem un moviment
+        moviments = moviments + 1;
+
+        // Actualitzem la pantalla
+        actualitzarUI();
+
+        // Comprovem si hem guanyat
+        if (estaResolt()) {
+            document.getElementById("missatgeResolt").textContent =
+                "Puzle resolt! Has fet " + moviments + " moviments.";
+        }
+    }
+    // Si no és adjacent, no fem res (la peça no es mou)
+}
+
+//  FUNCIÓ: init
+//  Crea tots els divs de les peces al DOM
+//  S'executa només una vegada a l'inici
+function init() {
+    var contenidor = document.getElementById("tauler");
+
+    // Creem la peça buida (valor 0)
+    var divBuit = document.createElement("div");
+    divBuit.id = "peca-0";
+    divBuit.classList.add("peca");
+    divBuit.classList.add("peca-buida");
+    contenidor.appendChild(divBuit);
+
+    // Creem les 8 peces (valors 1..8)
+    var n = 1;
+    while (n <= 8) {
+        var div = document.createElement("div");
+        div.id = "peca-" + n;
+        div.classList.add("peca");
+
+        // Assignem la imatge de fons corresponent (estan dins la carpeta img/)
+        div.style.backgroundImage = "url('img/" + n + ".png')";
+
+        // Guardem en una variable el valor actual de n perquè el listener
+        // el recordi correctament (problema clàssic de closures en bucles)
+        (function(valor) {
+            div.addEventListener("click", function () {
+                // Busquem en quin fila/columna és aquesta peça ara
+                var pos = trobarPeca(valor);
+                clicCasella(pos.fila, pos.columna);
+            });
+        })(n);
+
+        contenidor.appendChild(div);
+        n = n + 1;
+    }
+}
+
+//  FUNCIÓ: trobarPeca
+//  Donada un valor (1..8), retorna { fila, columna } al tauler
+function trobarPeca(valor) {
+    var fila = 0;
+    while (fila < 3) {
+        var columna = 0;
+        while (columna < 3) {
+            if (tauler[fila][columna] === valor) {
+                return { fila: fila, columna: columna };
+            }
+            columna = columna + 1;
+        }
+        fila = fila + 1;
+    }
+}
+
+//  FUNCIÓ: reset
+//  Barreja el tauler, posa el comptador a 0 i esborra el missatge
+function reset() {
+    // Barregem el tauler
+    barrejar();
+
+    // Resetegem el comptador
+    moviments = 0;
+
+    // Esborrem el missatge de victòria
+    document.getElementById("missatgeResolt").textContent = "";
+
+    // Actualitzem la pantalla amb la nova posició
+    actualitzarUI();
+}
+
+//  ARRENCADA: quan el HTML està carregat del tot
+window.addEventListener("DOMContentLoaded", function () {
+    // Creem els divs de les peces
+    init();
+
+    // Barregem per primera vegada
+    barrejar();
+
+    // Pintem les peces a la pantalla
+    actualitzarUI();
+
+    // El botó Reset crida la funció reset()
+    document.getElementById("btnReset").addEventListener("click", function () {
+        reset();
+    });
+});

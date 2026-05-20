@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="ca">
-  <head>
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no">
-    <link rel="stylesheet" href="estils.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600;800&display=swap" rel="stylesheet" />
-    <script src="script.js" defer></script>
     <title>Sliding Puzzle</title>
-  </head>
+    <!-- Enllacem l'arxiu d'estils -->
+    <link rel="stylesheet" href="estils.css">
+</head>
+<body>
 
-  <body onload="init()">
     <h1>Sliding Puzzle</h1>
 
+    <!-- Comptador de moviments -->
+    <p>Moviments: <span id="comptador">0</span></p>
+
+    <!-- Botó per reiniciar -->
+    <button id="btnReset">Reset</button>
+
+    <!-- Missatge que apareix quan el puzle està resolt -->
+    <p id="missatgeResolt"></p>
+
+    <!-- El tauler on van les peces -->
     <div id="tauler"></div>
 
-    <div class="controls">
-      <button id="btnReinici">Reset</button>
-      <span id="info">Moviments: <span id="comptador">0</span></span>
-    </div>
-
-    <h2 id="missatgeVictoria" class="ocult"></h2>
-  </body>
+    <!-- Enllacem l'arxiu JavaScript -->
+    <script src="script.js"></script>
+</body>
 </html>
